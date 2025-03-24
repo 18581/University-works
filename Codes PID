@@ -1,0 +1,52 @@
+
+import control as ctl
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Parámetros del motor
+params = {
+    'R': 2.4, 'L': 0.0045, 'J': 1.2e-4,
+    'Kt': 0.12, 'b': 0.001, 'Ke': 0.12
+}
+
+# Función de transferencia
+num = [params['Kt']]
+den = [params['J']*params['L'], 
+       params['J']*params['R'] + params['b']*params['L'],
+       params['b']*params['R'] + params['Kt']*params['Ke'], 
+       0]
+G = ctl.TransferFunction(num, den)
+
+# Control PID
+C = ctl.TransferFunction([0.12, 2.5, 18.0], [1, 0])
+sys_cl = ctl.feedback(C * G, 1)
+
+# Simulación
+t, y1 = ctl.step_response(G, T=np.linspace(0, 2, 1000))
+t, y2 = ctl.step_response(sys_cl, T=np.linspace(0, 2, 1000))
+
+# Gráfico
+plt.figure(figsize=(10, 6))
+plt.plot(t, y1 * 90, 'b', label='Sin PID')
+plt.plot(t, y2 * 90, 'r', label='Con PID')
+plt.title('Respuesta del Motor Paso a Paso')
+plt.xlabel('Tiempo (s)'); plt.ylabel('Posición (°)')
+plt.grid(True); plt.legend()
+plt.savefig('../tex/img/respuesta_motor.png', dpi=300)
+plt.close()
+
+
+import control as ctl
+import matplotlib.pyplot as plt
+
+# [...] (Usa los mismos parámetros que motor_response.py)
+
+plt.figure(figsize=(10, 6))
+ctl.nyquist_plot(G, label='Lazo Abierto', color='b')
+ctl.nyquist_plot(sys_cl, label='Lazo Cerrado', color='r')
+plt.title('Diagrama de Nyquist Comparativo')
+plt.savefig('../tex/img/nyquist_comparativo.png', dpi=300)
+plt.close()
+
+
+
